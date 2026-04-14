@@ -85,7 +85,7 @@
 
             <form id="loginForm">
                 <label>Usuario</label>
-                <input type="text" id="username" class="input-field" placeholder="ej. maestro_admin" required>
+                <input type="text" id="username" class="input-field" placeholder="ej. admin" required>
                 
                 <label>Contraseña</label>
                 <input type="password" id="password" class="input-field" placeholder="••••••••" required>
@@ -95,8 +95,8 @@
 
             <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.8rem; color: var(--text-muted);">
                 <strong>Cuentas de prueba:</strong><br>
-                👤 Usuario: maestro_admin / Clave: admin123 (Edita)<br>
-                👤 Usuario: maestro_user / Clave: user123 (Solo lee)
+                👤 Usuario: admin/ Clave: root (Edita)<br>
+                👤 Usuario: user / Clave: user (Solo lee)
             </div>
         </div>
     </div>
@@ -167,8 +167,8 @@
          LÓGICA DE JAVASCRIPT (SPA)
          ========================================== -->
     <script>
-        // ⚠️ ENLACE A NGROK (Asegúrate de que sea el tuyo)
-        const API_URL = "https://heftiness-chewer-trapdoor.ngrok-free.dev"; // Reemplaza con tu link exacto
+        // 
+        const API_URL = "https://heftiness-chewer-trapdoor.ngrok-free.dev";
 
         // Referencias de UI
         const loginView = document.getElementById('login-view');
