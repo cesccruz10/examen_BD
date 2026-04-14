@@ -67,9 +67,6 @@
 </head>
 <body>
 
-    <!-- ==========================================
-         VISTA 1: LOGIN
-         ========================================== -->
     <div id="login-view">
         <div class="login-card">
             <div style="text-align: center; margin-bottom: 1rem;">
@@ -95,17 +92,13 @@
 
             <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.8rem; color: var(--text-muted);">
                 <strong>Cuentas de prueba:</strong><br>
-                👤 Usuario: admin/ Clave: root (Edita)<br>
+                👤 Usuario: admin / Clave: root (Edita)<br>
                 👤 Usuario: user / Clave: user (Solo lee)
             </div>
         </div>
     </div>
 
-    <!-- ==========================================
-         VISTA 2: DASHBOARD
-         ========================================== -->
     <div id="dashboard-view" class="hidden">
-        <!-- Cabecera -->
         <header class="header">
             <div class="header-brand">
                 <svg width="24" height="24" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="6" fill="var(--accent)"/></svg>
@@ -118,13 +111,12 @@
             </div>
         </header>
 
-        <!-- Contenido principal -->
         <main class="main-content">
+            
             <div class="page-header">
                 <h1>Base de Datos de Alumnos</h1>
                 <p style="color: var(--text-muted)">Conectado al servidor central de PostgreSQL</p>
             </div>
-
             <div class="table-wrap">
                 <table id="alumnosTable">
                     <thead>
@@ -136,23 +128,14 @@
                             <th style="text-align: right;">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <!-- Los datos se inyectarán aquí vía JS -->
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
-        </main>
-    </div>
 
-    <!-- ==========================================
-         MODAL DE EDICIÓN (SOLO ADMIN)
-         ========================================== -->
-
-    <div class="page-header" style="margin-top: 3rem; margin-bottom: 1.5rem;">
+            <div class="page-header" style="margin-top: 3rem; margin-bottom: 1.5rem;">
                 <h2 style="font-size: 1.5rem;">Catálogo de Materias</h2>
                 <p style="color: var(--text-muted)">Oferta académica para el 8vo Semestre de Ingeniería en Sistemas</p>
             </div>
-
             <div class="table-wrap">
                 <table id="materiasTable">
                     <thead>
@@ -163,10 +146,31 @@
                             <th>Grupo</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
+
+            <div class="page-header" style="margin-top: 3rem; margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem;">Control Financiero</h2>
+                <p style="color: var(--text-muted)">Estado de cuenta y colegiaturas de los alumnos</p>
+            </div>
+            <div class="table-wrap">
+                <table id="adeudosTable">
+                    <thead>
+                        <tr>
+                            <th>Folio</th>
+                            <th>Alumno</th>
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
 
     <div id="editModal" class="modal-overlay hidden">
         <div class="modal">
@@ -184,11 +188,8 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         LÓGICA DE JAVASCRIPT (SPA)
-         ========================================== -->
     <script>
-        // 
+        // ⚠️ REVISA QUE ESTE SEA TU LINK ACTUAL DE NGROK
         const API_URL = "https://heftiness-chewer-trapdoor.ngrok-free.dev";
 
         // Referencias de UI
@@ -207,7 +208,7 @@
             }
         };
 
-        // 2. LÓGICA DE LOGIN
+        // LÓGICA DE LOGIN
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             errorBox.classList.add('hidden');
@@ -219,7 +220,7 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' // <--- LLAVE MAESTRA NGROK
+                        'ngrok-skip-browser-warning': 'true'
                     },
                     body: JSON.stringify({ username: user, password: pass })
                 });
@@ -244,7 +245,7 @@
             }
         });
 
-        // 3. CAMBIAR PANTALLA
+        // CAMBIAR PANTALLA Y CARGAR DATOS
         function mostrarDashboard() {
             loginView.classList.add('hidden');
             dashboardView.classList.remove('hidden');
@@ -262,9 +263,10 @@
 
             cargarAlumnos();
             cargarMaterias();
+            cargarAdeudos();
         }
 
-        // 4. OBTENER DATOS (API GET)
+        // CARGAR ALUMNOS
         async function cargarAlumnos() {
             const tbody = document.querySelector('#alumnosTable tbody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando base de datos...</td></tr>';
@@ -272,9 +274,7 @@
             try {
                 const response = await fetch(`${API_URL}/alumnos`, {
                     method: 'GET',
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true' // <--- LLAVE MAESTRA NGROK
-                    }
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const alumnos = await response.json();
                 
@@ -304,25 +304,11 @@
                 });
 
             } catch (error) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align:center; padding: 3rem 1rem;">
-                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" style="margin-bottom: 15px;">
-                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                                <line x1="12" y1="9" x2="12" y2="13"/>
-                                <line x1="12" y1="17" x2="12.01" y2="17"/>
-                            </svg>
-                            <h3 style="color: var(--danger); margin-bottom: 0.5rem; font-size: 1.2rem;">Servidor Desconectado</h3>
-                            <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 400px; margin: 0 auto;">
-                                No se pudo establecer conexión con el nodo central. El servidor de base de datos podría estar apagado o en mantenimiento.
-                            </p>
-                        </td>
-                    </tr>
-                `;
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--danger); padding: 2rem;">Error cargando alumnos. Servidor desconectado.</td></tr>`;
             }
         }
 
-        // 4.5 OBTENER MATERIAS (API GET)
+        // CARGAR MATERIAS
         async function cargarMaterias() {
             const tbody = document.querySelector('#materiasTable tbody');
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Consultando materias...</td></tr>';
@@ -330,9 +316,7 @@
             try {
                 const response = await fetch(`${API_URL}/materias`, {
                     method: 'GET',
-                    headers: {
-                        'ngrok-skip-browser-warning': 'true' // <--- No olvides la llave maestra de Ngrok
-                    }
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const materias = await response.json();
                 
@@ -340,7 +324,6 @@
                 
                 materias.forEach(mat => {
                     const tr = document.createElement('tr');
-                    
                     tr.innerHTML = `
                         <td><span class="badge" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border);">${mat.clave}</span></td>
                         <td style="font-weight: 500;">${mat.nombre}</td>
@@ -349,13 +332,52 @@
                     `;
                     tbody.appendChild(tr);
                 });
-
             } catch (error) {
                 tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color: var(--danger); padding: 2rem;">Error cargando el catálogo de materias.</td></tr>`;
             }
         }
 
-        // 5. MODAL DE EDICIÓN (API PUT)
+        // CARGAR ADEUDOS
+        async function cargarAdeudos() {
+            const tbody = document.querySelector('#adeudosTable tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Consultando registros financieros...</td></tr>';
+
+            try {
+                const response = await fetch(`${API_URL}/adeudos`, {
+                    method: 'GET',
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const adeudos = await response.json();
+                
+                tbody.innerHTML = ''; 
+                
+                adeudos.forEach(ad => {
+                    const tr = document.createElement('tr');
+                    
+                    let estadoBadge = '';
+                    if (ad.estado === 'Pagado') {
+                        estadoBadge = `<span class="badge" style="background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid #22c55e;">${ad.estado}</span>`;
+                    } else {
+                        estadoBadge = `<span class="badge" style="background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid #ef4444;">${ad.estado}</span>`;
+                    }
+
+                    const montoFormateado = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(ad.monto);
+
+                    tr.innerHTML = `
+                        <td>${ad.id_adeudo}</td>
+                        <td style="font-weight: 500;">${ad.nombre_alumno}</td>
+                        <td>${ad.concepto}</td>
+                        <td style="font-family: monospace; font-size: 1.1rem;">${montoFormateado}</td>
+                        <td>${estadoBadge}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--danger); padding: 2rem;">Error cargando el control financiero.</td></tr>`;
+            }
+        }
+
+        // MODAL DE EDICIÓN
         const modal = document.getElementById('editModal');
         
         function abrirModal(id, nombre, promedio) {
@@ -378,7 +400,7 @@
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' // <--- LLAVE MAESTRA NGROK
+                        'ngrok-skip-browser-warning': 'true'
                     },
                     body: JSON.stringify({ promedio: nuevoPromedio })
                 });
@@ -386,14 +408,14 @@
                 if (!response.ok) throw new Error("Error al actualizar");
                 
                 closeModal();
-                cargarAlumnos(); 
+                cargarAlumnos(); // Refrescar solo alumnos tras editar
 
             } catch (error) {
                 alert("Error de red: " + error.message);
             }
         }
 
-        // 6. CERRAR SESIÓN
+        // CERRAR SESIÓN
         function logout() {
             localStorage.removeItem('univo_user');
             currentUser = null;
