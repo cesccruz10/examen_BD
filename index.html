@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Integral UNIVO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- VARIABLES DE TEMA --- */
+        :root {
+            --bg: #0f172a; --surface: #1e293b; --surface-hover: #334155;
+            --text: #f8fafc; --text-muted: #94a3b8;
+            --accent: #3b82f6; --accent-hover: #2563eb;
+            --danger: #ef4444; --success: #22c55e;
+            --border: #334155; --radius: 12px;
+        }
+
+        /* --- RESET Y BASE --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+        .hidden { display: none !important; }
+        input, button { font-size: 1rem; outline: none; }
+
+        /* --- COMPONENTES COMPARTIDOS --- */
+        .btn { background: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn:hover { background: var(--accent-hover); }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--surface-hover); }
+        .input-field { width: 100%; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); margin-bottom: 1rem; }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .badge-admin { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6; }
+        .badge-user { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid #94a3b8; }
+        .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 500; }
+        .alert-error { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid #ef4444; }
+
+        /* --- VISTA LOGIN --- */
+        #login-view { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+        .login-card { background: var(--surface); padding: 2.5rem; border-radius: 16px; border: 1px solid var(--border); width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .login-card h1 { font-size: 1.5rem; margin-bottom: 0.5rem; text-align: center; }
+        .login-card p { color: var(--text-muted); text-align: center; margin-bottom: 2rem; font-size: 0.9rem; }
+        .login-card label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); }
+
+        /* --- VISTA DASHBOARD --- */
+        #dashboard-view { flex: 1; display: flex; flex-direction: column; }
+        .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .header-brand { font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; }
+        .header-user { display: flex; align-items: center; gap: 15px; }
+        
+        .main-content { padding: 2rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .page-header { margin-bottom: 2rem; }
+        .page-header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        
+        /* Tablas */
+        .table-wrap { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: rgba(0,0,0,0.2); padding: 1rem; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        td { padding: 1rem; border-bottom: 1px solid var(--border); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        /* --- MODAL EDICIÓN --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; }
+        .modal { background: var(--surface); padding: 2rem; border-radius: var(--radius); border: 1px solid var(--border); width: 100%; max-width: 400px; }
+        .modal h2 { margin-bottom: 1rem; font-size: 1.25rem; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+         VISTA 1: LOGIN
+         ========================================== -->
+    <div id="login-view">
+        <div class="login-card">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <svg width="40" height="40" viewBox="0 0 36 36" fill="none">
+                    <rect width="36" height="36" rx="9" fill="var(--accent)"/>
+                    <circle cx="18" cy="18" r="8" stroke="white" stroke-width="2"/>
+                </svg>
+            </div>
+            <h1>Iniciar sesión</h1>
+            <p>Sistema Integral UNIVO - Gestión Escolar</p>
+            
+            <div id="login-error" class="alert alert-error hidden"></div>
+
+            <form id="loginForm">
+                <label>Usuario</label>
+                <input type="text" id="username" class="input-field" placeholder="ej. maestro_admin" required>
+                
+                <label>Contraseña</label>
+                <input type="password" id="password" class="input-field" placeholder="••••••••" required>
+                
+                <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Ingresar al sistema</button>
+            </form>
+
+            <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.8rem; color: var(--text-muted);">
+                <strong>Cuentas de prueba:</strong><br>
+                👤 Usuario: maestro_admin / Clave: admin123 (Edita)<br>
+                👤 Usuario: maestro_user / Clave: user123 (Solo lee)
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         VISTA 2: DASHBOARD
+         ========================================== -->
+    <div id="dashboard-view" class="hidden">
+        <!-- Cabecera -->
+        <header class="header">
+            <div class="header-brand">
+                <svg width="24" height="24" viewBox="0 0 36 36" fill="none"><rect width="36" height="36" rx="6" fill="var(--accent)"/></svg>
+                Portal UNIVO
+            </div>
+            <div class="header-user">
+                <span id="user-role-badge" class="badge">Role</span>
+                <span id="user-name-display" style="font-weight: 500;">Username</span>
+                <button onclick="logout()" class="btn-outline" style="padding: 0.4rem 1rem; font-size: 0.9rem;">Cerrar sesión</button>
+            </div>
+        </header>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Base de Datos de Alumnos</h1>
+                <p style="color: var(--text-muted)">Conectado al servidor central de PostgreSQL</p>
+            </div>
+
+            <div class="table-wrap">
+                <table id="alumnosTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre Completo</th>
+                            <th>Carrera</th>
+                            <th>Promedio</th>
+                            <th style="text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los datos se inyectarán aquí vía JS -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==========================================
+         MODAL DE EDICIÓN (SOLO ADMIN)
+         ========================================== -->
+    <div id="editModal" class="modal-overlay hidden">
+        <div class="modal">
+            <h2>Modificar Promedio</h2>
+            <p id="editStudentName" style="color: var(--text-muted); margin-bottom: 1.5rem;"></p>
+            
+            <input type="hidden" id="editStudentId">
+            <label style="display:block; margin-bottom:0.5rem; color:var(--text-muted); font-size:0.9rem;">Nuevo Promedio:</label>
+            <input type="number" step="0.1" id="editStudentGrade" class="input-field" required>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+                <button type="button" class="btn" onclick="guardarEdicion()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         LÓGICA DE JAVASCRIPT (SPA)
+         ========================================== -->
+    <script>
+        // ⚠️ ENLACE A NGROK (Cambia esto el día de la presentación)
+        // Ejemplo: const API_URL = "https://1a2b3c.ngrok.app";
+        const API_URL = "https://heftiness-chewer-trapdoor.ngrok-free.dev";
+
+        // Referencias de UI
+        const loginView = document.getElementById('login-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        const loginForm = document.getElementById('loginForm');
+        const errorBox = document.getElementById('login-error');
+
+        // Estado de la aplicación
+        let currentUser = null;
+
+        // 1. INICIALIZACIÓN (Ver si ya está logueado)
+        window.onload = () => {
+            const savedUser = localStorage.getItem('univo_user');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                mostrarDashboard();
+            }
+        };
+
+        // 2. LÓGICA DE LOGIN
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorBox.classList.add('hidden');
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.detail || "Error al iniciar sesión");
+
+                // Guardar sesión y entrar
+                currentUser = { username: data.username, rol: data.rol };
+                localStorage.setItem('univo_user', JSON.stringify(currentUser));
+                
+                // Limpiar formulario y entrar
+                loginForm.reset();
+                mostrarDashboard();
+
+            } catch (error) {
+                errorBox.innerText = error.message;
+                errorBox.classList.remove('hidden');
+            }
+        });
+
+        // 3. CAMBIAR PANTALLA Y CARGAR DATOS
+        function mostrarDashboard() {
+            loginView.classList.add('hidden');
+            dashboardView.classList.remove('hidden');
+            
+            // Actualizar la interfaz de usuario en la cabecera
+            document.getElementById('user-name-display').innerText = currentUser.username;
+            const badge = document.getElementById('user-role-badge');
+            
+            if (currentUser.rol === 'admin') {
+                badge.innerText = "Administrador";
+                badge.className = "badge badge-admin";
+            } else {
+                badge.innerText = "Modo Lectura";
+                badge.className = "badge badge-user";
+            }
+
+            cargarAlumnos();
+        }
+
+        // 4. OBTENER DATOS DE LA BASE (API GET)
+        // 4. OBTENER DATOS DE LA BASE (API GET)
+        async function cargarAlumnos() {
+            const tbody = document.querySelector('#alumnosTable tbody');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando base de datos...</td></tr>';
+
+            try {
+                const response = await fetch(`${API_URL}/alumnos`);
+                const alumnos = await response.json();
+                
+                tbody.innerHTML = ''; // Limpiar
+                
+                alumnos.forEach(al => {
+                    const tr = document.createElement('tr');
+                    
+                    let actionButton = '';
+                    if (currentUser.rol === 'admin') {
+                        actionButton = `<button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" 
+                                        onclick="abrirModal(${al.id_alumno}, '${al.nombre}', ${al.promedio})">
+                                        Editar
+                                        </button>`;
+                    } else {
+                        actionButton = `<span style="color:var(--text-muted); font-size:0.8rem;">Sin permisos</span>`;
+                    }
+
+                    tr.innerHTML = `
+                        <td>${al.id_alumno}</td>
+                        <td style="font-weight: 500;">${al.nombre}</td>
+                        <td>${al.carrera}</td>
+                        <td><span class="badge" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border);">${al.promedio}</span></td>
+                        <td style="text-align: right;">${actionButton}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (error) {
+                // AQUÍ ESTÁ LA MAGIA VISUAL PARA EL ERROR
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align:center; padding: 3rem 1rem;">
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" style="margin-bottom: 15px;">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            <h3 style="color: var(--danger); margin-bottom: 0.5rem; font-size: 1.2rem;">Servidor Desconectado</h3>
+                            <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 400px; margin: 0 auto;">
+                                No se pudo establecer conexión con el nodo central. El servidor de base de datos podría estar apagado o en mantenimiento.
+                            </p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // 5. MODAL DE EDICIÓN (API PUT)
+        const modal = document.getElementById('editModal');
+        
+        function abrirModal(id, nombre, promedio) {
+            document.getElementById('editStudentId').value = id;
+            document.getElementById('editStudentName').innerText = nombre;
+            document.getElementById('editStudentGrade').value = promedio;
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+
+        async function guardarEdicion() {
+            const id = document.getElementById('editStudentId').value;
+            const nuevoPromedio = parseFloat(document.getElementById('editStudentGrade').value);
+
+            try {
+                const response = await fetch(`${API_URL}/alumnos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ promedio: nuevoPromedio })
+                });
+
+                if (!response.ok) throw new Error("Error al actualizar");
+                
+                closeModal();
+                cargarAlumnos(); // Refrescar la tabla
+
+            } catch (error) {
+                alert("Error de red: " + error.message);
+            }
+        }
+
+        // 6. CERRAR SESIÓN
+        function logout() {
+            localStorage.removeItem('univo_user');
+            currentUser = null;
+            dashboardView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
