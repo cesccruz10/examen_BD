@@ -167,9 +167,8 @@
          LÓGICA DE JAVASCRIPT (SPA)
          ========================================== -->
     <script>
-        // ⚠️ ENLACE A NGROK (Cambia esto el día de la presentación)
-        // Ejemplo: const API_URL = "https://1a2b3c.ngrok.app";
-        const API_URL = "https://heftiness-chewer-trapdoor.ngrok-free.dev";
+        // ⚠️ ENLACE A NGROK (Asegúrate de que sea el tuyo)
+        const API_URL = "https://heftiness-chewer-trapdoor.ngrok-free.dev"; // Reemplaza con tu link exacto
 
         // Referencias de UI
         const loginView = document.getElementById('login-view');
@@ -177,10 +176,8 @@
         const loginForm = document.getElementById('loginForm');
         const errorBox = document.getElementById('login-error');
 
-        // Estado de la aplicación
         let currentUser = null;
 
-        // 1. INICIALIZACIÓN (Ver si ya está logueado)
         window.onload = () => {
             const savedUser = localStorage.getItem('univo_user');
             if (savedUser) {
@@ -199,7 +196,10 @@
             try {
                 const response = await fetch(`${API_URL}/login`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true' // <--- LLAVE MAESTRA NGROK
+                    },
                     body: JSON.stringify({ username: user, password: pass })
                 });
 
@@ -207,26 +207,27 @@
 
                 if (!response.ok) throw new Error(data.detail || "Error al iniciar sesión");
 
-                // Guardar sesión y entrar
                 currentUser = { username: data.username, rol: data.rol };
                 localStorage.setItem('univo_user', JSON.stringify(currentUser));
                 
-                // Limpiar formulario y entrar
                 loginForm.reset();
                 mostrarDashboard();
 
             } catch (error) {
-                errorBox.innerText = error.message;
+                if (error.message.includes("Failed to fetch")) {
+                    errorBox.innerHTML = "<strong>Error de red:</strong> El servidor central está apagado.";
+                } else {
+                    errorBox.innerText = error.message;
+                }
                 errorBox.classList.remove('hidden');
             }
         });
 
-        // 3. CAMBIAR PANTALLA Y CARGAR DATOS
+        // 3. CAMBIAR PANTALLA
         function mostrarDashboard() {
             loginView.classList.add('hidden');
             dashboardView.classList.remove('hidden');
             
-            // Actualizar la interfaz de usuario en la cabecera
             document.getElementById('user-name-display').innerText = currentUser.username;
             const badge = document.getElementById('user-role-badge');
             
@@ -241,17 +242,21 @@
             cargarAlumnos();
         }
 
-        // 4. OBTENER DATOS DE LA BASE (API GET)
-        // 4. OBTENER DATOS DE LA BASE (API GET)
+        // 4. OBTENER DATOS (API GET)
         async function cargarAlumnos() {
             const tbody = document.querySelector('#alumnosTable tbody');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando base de datos...</td></tr>';
 
             try {
-                const response = await fetch(`${API_URL}/alumnos`);
+                const response = await fetch(`${API_URL}/alumnos`, {
+                    method: 'GET',
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true' // <--- LLAVE MAESTRA NGROK
+                    }
+                });
                 const alumnos = await response.json();
                 
-                tbody.innerHTML = ''; // Limpiar
+                tbody.innerHTML = ''; 
                 
                 alumnos.forEach(al => {
                     const tr = document.createElement('tr');
@@ -277,7 +282,6 @@
                 });
 
             } catch (error) {
-                // AQUÍ ESTÁ LA MAGIA VISUAL PARA EL ERROR
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="5" style="text-align:center; padding: 3rem 1rem;">
@@ -317,14 +321,17 @@
             try {
                 const response = await fetch(`${API_URL}/alumnos/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true' // <--- LLAVE MAESTRA NGROK
+                    },
                     body: JSON.stringify({ promedio: nuevoPromedio })
                 });
 
                 if (!response.ok) throw new Error("Error al actualizar");
                 
                 closeModal();
-                cargarAlumnos(); // Refrescar la tabla
+                cargarAlumnos(); 
 
             } catch (error) {
                 alert("Error de red: " + error.message);
